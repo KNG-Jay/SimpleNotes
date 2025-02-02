@@ -16,7 +16,6 @@ public class SimpleNotes {
 		MyJPanel jp = new MyJPanel();
 		jp.setBounds(0, 0, 700, 270);
 		frame.add(jp);
-		frame.setBackground(Color.CYAN);
 		
 		JLabel label = new JLabel("Notes");
 		label.setBounds(300, 50, 200, 200);
@@ -153,9 +152,34 @@ public class SimpleNotes {
 			if(a.getSource() == view) {
 				
 			}
-			// CREATE UPDATE FUNCTION
+			
 			if(a.getSource() == update) {
+				connect();
+				String noteSubject = subject.getText();
+				String noteTitle = title.getText();
+				String noteEntry = entry.getText();
 				
+				try {
+					statement = con.prepareStatement("update notes set noteSubject = ?, noteTitle = ?,"
+							+ " noteEntry = ? where noteTitle = ?");
+					statement.setString(1, noteSubject);
+					statement.setString(2, noteTitle);
+					statement.setString(3, noteEntry);
+					statement.setString(4, noteTitle);
+					statement.executeUpdate();
+					
+					JOptionPane.showMessageDialog(null, "Note Has Been Updated!", "Note Updated",
+							JOptionPane.INFORMATION_MESSAGE);
+					
+					subject.setText("");
+					title.setText("");
+					entry.setText("");
+					
+					con.close();
+					
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+				}
 			}
 			
 			if(a.getSource() == delete) {
@@ -215,7 +239,6 @@ class MyJPanel extends JPanel {
 	@Override
 	protected void paintComponent(Graphics g) {
 	    super.paintComponent(g);
-	    //draw image from top left corner
 	    g.drawImage(image, 0, 0, this);
 	}
 }
