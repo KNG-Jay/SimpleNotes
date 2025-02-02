@@ -86,35 +86,25 @@ public class SimpleNotes {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		
-		HandleEvent handleEvent = new HandleEvent(subjectField, titleField, scrollPane, createButton,
-				viewButton, updateButton, deleteButton);
+		HandleEvent handleEvent = new HandleEvent(subjectField, titleField, entryField,
+				createButton, viewButton, updateButton, deleteButton);
 		
+		createButton.addActionListener(handleEvent);
 		viewButton.addActionListener(handleEvent);
 		updateButton.addActionListener(handleEvent);
 		deleteButton.addActionListener(handleEvent);
 		
 	}
 	
-	public static void connect() {
-		String URL = "jdbc:sqlite:notes.db";
-		
-		try (Connection con = DriverManager.getConnection(URL)) {
-			System.out.println("Successfully Connected to Database...");
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-		}
-		
-	}
-	
 	static class HandleEvent implements ActionListener {
 		
 		JTextField subject, title;
-		JScrollPane entry;
+		JTextArea entry;
 		JButton create, view, update, delete;
 		public static Connection con;
 		public static PreparedStatement statement;
 		
-		public HandleEvent(JTextField subject, JTextField title, JScrollPane entry,
+		public HandleEvent(JTextField subject, JTextField title, JTextArea entry,
 				JButton create, JButton view, JButton update, JButton delete) {
 			this.subject = subject;
 			this.title = title;
@@ -128,9 +118,62 @@ public class SimpleNotes {
 		
 		@Override
 		public void actionPerformed(ActionEvent a) {
+			
 			if(a.getSource() == create) {
 				connect();
+				String noteSubject = subject.getText();
+				String noteTitle = title.getText();
+				String noteEntry = entry.getText();
+				
+				try {
+					statement = con.prepareStatement("CREATE TABLE IF NOT EXISTS notes(noteSubject VARCHAR PRIMARY KEY,"
+							+ " noteTitle VARCHAR NOT NULL, noteEntry VARCHAR NOT NULL);");
+					statement.execute();
+					statement = con.prepareStatement("insert into notes(noteSubject,"
+							+ " noteTitle, noteEntry)values(?,?,?);");
+					statement.setString(1, noteSubject);
+					statement.setString(2, noteTitle);
+					statement.setString(3, noteEntry);
+					statement.executeUpdate();
+					
+					JOptionPane.showMessageDialog(null, "Note Created Successfully!", "Note Created",
+							JOptionPane.INFORMATION_MESSAGE);
+					
+					subject.setText("");
+					title.setText("");
+					entry.setText("");
+					
+					con.close();
+					
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+				}
 			}
+			// CREATE VIEW FUNCTION
+			if(a.getSource() == view) {
+				
+			}
+			// CREATE UPDATE FUNCTION
+			if(a.getSource() == update) {
+				
+			}
+			// CREATE DELETE FUNCTION
+			if(a.getSource() == delete) {
+				
+			}
+			
+		}
+		
+		public static void connect() {
+			String URL = "jdbc:sqlite:notes.db";
+			
+			try {
+				con = DriverManager.getConnection(URL);
+				System.out.println("Successfully Connected to Database...");
+			} catch (SQLException e) {
+				System.out.println(e.getMessage());
+			}
+			
 		}
 	}
 	
