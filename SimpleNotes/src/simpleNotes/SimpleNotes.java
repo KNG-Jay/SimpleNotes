@@ -157,9 +157,28 @@ public class SimpleNotes {
 			if(a.getSource() == update) {
 				
 			}
-			// CREATE DELETE FUNCTION
+			
 			if(a.getSource() == delete) {
+				connect();
+				String noteTitle = title.getText();
 				
+				try {
+					statement = con.prepareStatement("delete from notes where notetitle = ?");
+					statement.setString(1, noteTitle);
+					statement.executeUpdate();
+					
+					JOptionPane.showMessageDialog(null, "Note Has Been Deleted!", "Note Created",
+							JOptionPane.INFORMATION_MESSAGE);
+					
+					subject.setText("");
+					title.setText("");
+					entry.setText("");
+					
+					con.close();
+					
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+				}
 			}
 			
 		}
@@ -178,7 +197,6 @@ public class SimpleNotes {
 	}
 	
 }
-
 
 
 class MyJPanel extends JPanel {
