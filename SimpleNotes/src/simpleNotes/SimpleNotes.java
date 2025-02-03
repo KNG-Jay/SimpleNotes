@@ -52,7 +52,7 @@ public class SimpleNotes {
 		createButton.setBackground(Color.RED);
 		createButton.setForeground(Color.DARK_GRAY);
 		
-		JButton viewButton = new JButton("View Notes");
+		JButton viewButton = new JButton("View Note");
 		viewButton.setBounds(230, 660, 200, 30);
 		viewButton.setBackground(Color.RED);
 		viewButton.setForeground(Color.WHITE);
@@ -85,7 +85,7 @@ public class SimpleNotes {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		
-		HandleEvent handleEvent = new HandleEvent(subjectField, titleField, entryField,
+		HandleEvent handleEvent = new HandleEvent(frame, subjectField, titleField, entryField,
 				createButton, viewButton, updateButton, deleteButton);
 		
 		createButton.addActionListener(handleEvent);
@@ -100,11 +100,13 @@ public class SimpleNotes {
 		JTextField subject, title;
 		JTextArea entry;
 		JButton create, view, update, delete;
+		JFrame frame;
 		public static Connection con;
 		public static PreparedStatement statement;
 		
-		public HandleEvent(JTextField subject, JTextField title, JTextArea entry,
+		public HandleEvent(JFrame frame, JTextField subject, JTextField title, JTextArea entry,
 				JButton create, JButton view, JButton update, JButton delete) {
+			this.frame = frame;
 			this.subject = subject;
 			this.title = title;
 			this.entry = entry;
@@ -148,9 +150,47 @@ public class SimpleNotes {
 					ex.printStackTrace();
 				}
 			}
-			// CREATE VIEW FUNCTION
+			
 			if(a.getSource() == view) {
+				connect();
+				JDialog dialog = new JDialog(frame, "Note");
+				dialog.setSize(500, 600);
+				dialog.setVisible(true);
+				String noteTitle = title.getText();
 				
+				try {
+					statement = con.prepareStatement("select noteSubject, noteTitle, noteEntry from notes where "
+							+ "noteTitle = ?");
+					statement.setString(1, noteTitle);
+					ResultSet rs = statement.executeQuery();
+					
+					if (rs.next() == true) {
+						String noteSubject = rs.getString(1);
+						noteTitle = rs.getString(2);
+						String noteEntry = rs.getString(3);
+						
+						JLabel l0 = new JLabel("Subject:          "+ noteSubject);
+						l0.setBounds(150, 70, 200, 100);
+						JLabel l1 = new JLabel("Title:          " + noteTitle);
+						l1.setBounds(150, 100, 200, 250);
+						JLabel l2 = new JLabel("Entry:          " + noteEntry);
+						l2.setBounds(150, 150, 300, 400);
+						dialog.add(l0);
+						dialog.add(l1);
+						dialog.add(l2);
+						dialog.setDefaultCloseOperation(1);
+						
+					} else {
+						subject.setText("");
+						title.setText("");
+						entry.setText("");
+						JOptionPane.showMessageDialog(null, "Invalid Title Input", "Error",
+								JOptionPane.ERROR_MESSAGE);
+					}
+					
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+				}
 			}
 			
 			if(a.getSource() == update) {
