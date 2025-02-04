@@ -36,7 +36,6 @@ public class SimpleNotes {
 		JTextField titleField = new JTextField();
 		titleField.setBounds(250, 387, 250, 30);
 		
-		
 		JLabel entry = new JLabel("Entry:");
 		entry.setBounds(130, 400, 200, 200);
 		entry.setFont(new Font("Serif", Font.BOLD, 22));
@@ -50,7 +49,7 @@ public class SimpleNotes {
 		JButton createButton = new JButton("Create");
 		createButton.setBounds(170, 620, 100, 30);
 		createButton.setBackground(Color.RED);
-		createButton.setForeground(Color.DARK_GRAY);
+		createButton.setForeground(Color.BLACK);
 		
 		JButton viewButton = new JButton("View Note");
 		viewButton.setBounds(230, 660, 200, 30);
@@ -60,12 +59,12 @@ public class SimpleNotes {
 		JButton updateButton = new JButton("Update");
 		updateButton.setBounds(280, 620, 100, 30);
 		updateButton.setBackground(Color.RED);
-		updateButton.setForeground(Color.DARK_GRAY);
+		updateButton.setForeground(Color.BLACK);
 		
 		JButton deleteButton = new JButton("Delete");
 		deleteButton.setBounds(390, 620, 100, 30);
 		deleteButton.setBackground(Color.RED);
-		deleteButton.setForeground(Color.DARK_GRAY);
+		deleteButton.setForeground(Color.BLACK);
 		
 		frame.setLayout(null);
 		jp.add(label);
@@ -80,6 +79,7 @@ public class SimpleNotes {
 		frame.add(updateButton);
 		frame.add(deleteButton);
 		
+		frame.getContentPane().setBackground(Color.DARK_GRAY);;
 		frame.setSize(700, 800);
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -153,9 +153,6 @@ public class SimpleNotes {
 			
 			if(a.getSource() == view) {
 				connect();
-				JDialog dialog = new JDialog(frame, "Note");
-				dialog.setSize(500, 600);
-				dialog.setVisible(true);
 				String noteTitle = title.getText();
 				
 				try {
@@ -169,16 +166,25 @@ public class SimpleNotes {
 						noteTitle = rs.getString(2);
 						String noteEntry = rs.getString(3);
 						
+						JDialog dialog = new JDialog(frame, "Note");
+						dialog.setSize(500, 600);
+						dialog.getContentPane().setBackground(Color.DARK_GRAY);
+						dialog.setVisible(true);
 						JLabel l0 = new JLabel("Subject:          "+ noteSubject);
 						l0.setBounds(150, 70, 200, 100);
+						l0.setForeground(Color.RED);
 						JLabel l1 = new JLabel("Title:          " + noteTitle);
-						l1.setBounds(150, 100, 200, 250);
+						l1.setBounds(150, 90, 200, 250);
+						l1.setForeground(Color.RED);
 						JLabel l2 = new JLabel("Entry:          " + noteEntry);
 						l2.setBounds(150, 150, 300, 400);
+						l2.setForeground(Color.RED);
 						dialog.add(l0);
 						dialog.add(l1);
 						dialog.add(l2);
 						dialog.setDefaultCloseOperation(1);
+						
+						con.close();
 						
 					} else {
 						subject.setText("");
@@ -231,7 +237,7 @@ public class SimpleNotes {
 					statement.setString(1, noteTitle);
 					statement.executeUpdate();
 					
-					JOptionPane.showMessageDialog(null, "Note Has Been Deleted!", "Note Created",
+					JOptionPane.showMessageDialog(null, "Note Has Been Deleted!", "Note Deleted",
 							JOptionPane.INFORMATION_MESSAGE);
 					
 					subject.setText("");
@@ -263,6 +269,7 @@ public class SimpleNotes {
 }
 
 
+@SuppressWarnings("serial")
 class MyJPanel extends JPanel {
 	BufferedImage image = null;
 
