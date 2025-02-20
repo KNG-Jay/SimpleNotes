@@ -1,45 +1,49 @@
 package simpleNotes;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.sql.*;
 
 public class SimpleNotes {
-	public static void main(String[] args) {
+	public static void Window() {
+		
 		JFrame frame = new JFrame("Simple Notes - A Note Taking Application");
-		// FIX ME: Add background photo of JPanel
-		MyJPanel jp = new MyJPanel();
-		jp.setBounds(0, 0, 700, 270);
-		frame.add(jp);
+		ImageIcon background_image = new ImageIcon("sunset.jpg");
+		JLabel background = new JLabel("", background_image, JLabel.CENTER);
+		background.setBounds(0, 0, 700, 800);
+		
+		JPanel heading = new JPanel();
+		heading.setBackground(new Color(0,0,0,80));
+		heading.setBounds(0, 0, 700, 80);
+		
+		JPanel textA = new JPanel();
+		textA.setBackground(new Color(0,0,0,80));
+		textA.setBounds(120, 280, 500, 330);
 		
 		JLabel label = new JLabel("Notes");
-		label.setBounds(300, 50, 200, 200);
+		label.setBounds(300, 50, 200, 20);
 		label.setFont(new Font("Monospaced", Font.BOLD, 30));
 		label.setForeground(Color.RED);
 		
 		JLabel subject = new JLabel("Subject:");
 		subject.setBounds(130, 200, 200, 200);
 		subject.setFont(new Font("Serif", Font.BOLD, 22));
-		subject.setForeground(Color.RED);
+		subject.setForeground(Color.WHITE);
 		JTextField subjectField = new JTextField();
 		subjectField.setBounds(250, 287, 250, 30);
 		
 		JLabel title = new JLabel("Title:");
 		title.setBounds(130, 300, 200, 200);
 		title.setFont(new Font("Serif", Font.BOLD, 22));
-		title.setForeground(Color.RED);
+		title.setForeground(Color.WHITE);
 		JTextField titleField = new JTextField();
 		titleField.setBounds(250, 387, 250, 30);
 		
 		JLabel entry = new JLabel("Entry:");
 		entry.setBounds(130, 400, 200, 200);
 		entry.setFont(new Font("Serif", Font.BOLD, 22));
-		entry.setForeground(Color.RED);
+		entry.setForeground(Color.WHITE);
 		JTextArea entryField = new JTextArea();
 		entryField.setLineWrap(true);
 		entryField.setWrapStyleWord(true);
@@ -67,7 +71,7 @@ public class SimpleNotes {
 		deleteButton.setForeground(Color.BLACK);
 		
 		frame.setLayout(null);
-		jp.add(label);
+		frame.add(heading);
 		frame.add(subject);
 		frame.add(subjectField);
 		frame.add(title);
@@ -78,6 +82,9 @@ public class SimpleNotes {
 		frame.add(viewButton);
 		frame.add(updateButton);
 		frame.add(deleteButton);
+		frame.add(textA);
+		frame.add(background);
+		heading.add(label);
 		
 		frame.getContentPane().setBackground(Color.DARK_GRAY);;
 		frame.setSize(700, 800);
@@ -94,6 +101,12 @@ public class SimpleNotes {
 		deleteButton.addActionListener(handleEvent);
 		
 	}
+	
+	
+	public static void main(String[] args) {
+		Window();
+	}
+	
 	
 	static class HandleEvent implements ActionListener {
 		
@@ -116,6 +129,7 @@ public class SimpleNotes {
 			this.delete = delete;
 			
 		}
+		
 		
 		@Override
 		public void actionPerformed(ActionEvent a) {
@@ -170,15 +184,19 @@ public class SimpleNotes {
 						dialog.setSize(500, 600);
 						dialog.getContentPane().setBackground(Color.DARK_GRAY);
 						dialog.setVisible(true);
+						
 						JLabel l0 = new JLabel("Subject:          "+ noteSubject);
 						l0.setBounds(150, 70, 200, 100);
 						l0.setForeground(Color.RED);
+						
 						JLabel l1 = new JLabel("Title:          " + noteTitle);
 						l1.setBounds(150, 90, 200, 250);
 						l1.setForeground(Color.RED);
+						
 						JLabel l2 = new JLabel("Entry:          " + noteEntry);
 						l2.setBounds(150, 150, 300, 400);
 						l2.setForeground(Color.RED);
+						
 						dialog.add(l0);
 						dialog.add(l1);
 						dialog.add(l2);
@@ -190,7 +208,8 @@ public class SimpleNotes {
 						subject.setText("");
 						title.setText("");
 						entry.setText("");
-						JOptionPane.showMessageDialog(null, "Invalid Title Input", "Error",
+						
+						JOptionPane.showMessageDialog(null, "Please Enter A Valid Title", "Error",
 								JOptionPane.ERROR_MESSAGE);
 					}
 					
@@ -268,24 +287,3 @@ public class SimpleNotes {
 	
 }
 
-
-@SuppressWarnings("serial")
-class MyJPanel extends JPanel {
-	BufferedImage image = null;
-
-	public MyJPanel(){
-	    try {
-	        image = ImageIO.read(new File("sunset.jpg"));
-	    } catch (IOException ex) {
-	        System.out.println("Failed to load image");
-	        System.exit(1);
-	    }
-	    setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
-	}
-
-	@Override
-	protected void paintComponent(Graphics g) {
-	    super.paintComponent(g);
-	    g.drawImage(image, 0, 0, this);
-	}
-}
