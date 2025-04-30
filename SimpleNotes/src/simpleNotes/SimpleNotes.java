@@ -6,6 +6,8 @@ import java.awt.event.*;
 import java.sql.*;
 
 public class SimpleNotes {
+	
+	
 	public static void Window() {
 		
 		JFrame frame = new JFrame("Simple Notes - A Note Taking Application");
@@ -104,45 +106,118 @@ public class SimpleNotes {
 	
 	
 	public static void main(String[] args) {
+		
 		Window();
+		
 	}
 	
 	
-	static class HandleEvent implements ActionListener {
+}
+	
+	
+class HandleEvent implements ActionListener {
 		
-		JTextField subject, title;
-		JTextArea entry;
-		JButton create, view, update, delete;
-		JFrame frame;
-		public static Connection con;
-		public static PreparedStatement statement;
+	private JTextField subject, title;
+	private JTextArea entry;
+	private JButton create, view, update, delete;
+	private JFrame frame;
+	public static Connection con;
+	public static PreparedStatement statement;
 		
-		public HandleEvent(JFrame frame, JTextField subject, JTextField title, JTextArea entry,
-				JButton create, JButton view, JButton update, JButton delete) {
-			this.frame = frame;
-			this.subject = subject;
-			this.title = title;
-			this.entry = entry;
-			this.create = create;
-			this.view = view;
-			this.update = update;
-			this.delete = delete;
+	
+	public HandleEvent(JFrame frame, JTextField subject, JTextField title, JTextArea entry,
+			JButton create, JButton view, JButton update, JButton delete) {
+		
+		this.frame = frame;
+		this.subject = subject;
+		this.title = title;
+		this.entry = entry;
+		this.create = create;
+		this.view = view;
+		this.update = update;
+		this.delete = delete;
+			
+	}
+	
+	
+	public static void connect() {
+		String URL = "jdbc:sqlite:notes.db";
+		
+		try {
+			con = DriverManager.getConnection(URL);
+			System.out.println("Successfully Connected to Database...\n");
+		} catch (SQLException e) {
+			System.out.println("Failed to Connect!\n" + e.getMessage());
+		}
+		
+	}
+	
+	
+	public void printData(String subject, String title, String entry) {
+		
+		System.out.println("\nData Received As Follows\n");
+		System.out.println("Subject: " + subject + "\n");
+		System.out.println("Title: " + title + "\n");
+		System.out.println("Entry: \n" + entry + "\n");
+		
+	}
+	
+	public void getAll() {
+		
+		try {
+			connect();
+			
+			statement = con.prepareStatement("SELECT * FROM notes;");
+			ResultSet rs = statement.executeQuery();
+			
+			while (!rs.isAfterLast()) {
+				
+				rs.next();
+				
+				String noteSubject = rs.getString(1);
+				String noteTitle = rs.getString(2);
+				String noteEntry = rs.getString(3);
+				
+				if (noteSubject == null || noteTitle == null || noteEntry == null) {
+					break;
+				} else {
+				
+					System.out.println("Subject: " + noteSubject);
+					System.out.println("Title: " + noteTitle);
+					System.out.println("\nEntry: \n" + noteEntry + "\n\n");
+					
+				}
+				
+			}
+			
+		} catch (SQLException ex) {
+			System.out.println("Failed to get all entries...\n" + ex.getMessage());
 			
 		}
 		
+	}
 		
-		@Override
-		public void actionPerformed(ActionEvent a) {
+		
+	@Override
+	public void actionPerformed(ActionEvent a) {
 			
-			if(a.getSource() == create) {
-				connect();
-				String noteSubject = subject.getText();
-				String noteTitle = title.getText();
-				String noteEntry = entry.getText();
+		if(a.getSource() == create) {
+			
+			String noteSubject = subject.getText().trim();
+			String noteTitle = title.getText().trim();
+			String noteEntry = entry.getText().trim();
+			
+			if (noteSubject.isBlank() || noteTitle.isBlank() || noteEntry.isBlank()) {
+				JOptionPane.showMessageDialog(null, "Please Fill in all Fields.", "Note rejected", 
+						JOptionPane.ERROR_MESSAGE);
+				System.out.println("Please Fill in all Required Fields!");
+			} else {
 				
 				try {
-					statement = con.prepareStatement("CREATE TABLE IF NOT EXISTS notes(noteSubject VARCHAR PRIMARY KEY,"
-							+ " noteTitle VARCHAR NOT NULL, noteEntry VARCHAR NOT NULL);");
+					connect();
+					
+					statement = con.prepareStatement("CREATE TABLE IF NOT EXISTS notes(noteSubject VARCHAR,"
+							+ " noteTitle VARCHAR NOT NULL, noteEntry VARCHAR PRIMARY KEY);");
 					statement.execute();
 					statement = con.prepareStatement("insert into notes(noteSubject,"
 							+ " noteTitle, noteEntry)values(?,?,?);");
@@ -151,139 +226,184 @@ public class SimpleNotes {
 					statement.setString(3, noteEntry);
 					statement.executeUpdate();
 					
+					printData(noteSubject, noteTitle, noteEntry);
+						
 					JOptionPane.showMessageDialog(null, "Note Created Successfully!", "Note Created",
 							JOptionPane.INFORMATION_MESSAGE);
-					
+						
 					subject.setText("");
 					title.setText("");
 					entry.setText("");
-					
+						
 					con.close();
-					
+						
 				} catch (SQLException ex) {
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Failed to Create Note", 
+							JOptionPane.ERROR_MESSAGE);
 					ex.printStackTrace();
 				}
 			}
+		}
 			
-			if(a.getSource() == view) {
-				connect();
-				String noteTitle = title.getText();
+		if(a.getSource() == view) {
+			
+			String noteSubject = subject.getText().trim();
+			String noteTitle = title.getText().trim();
+			
+			if (noteSubject.equals("command") && noteTitle.equals("getAll();")) {
+				getAll();
+				
+				noteSubject = "";
+				noteTitle = "";
+				
+				JOptionPane.showMessageDialog(null, "Check Log For Details...", "Command Input", 
+						JOptionPane.INFORMATION_MESSAGE);
+				
+			} else if (noteTitle.isBlank() || noteSubject.isBlank()) {
+				JOptionPane.showMessageDialog(null, "Please Fill in the 'Subject' & 'Title' fields.", "Note rejected", 
+						JOptionPane.ERROR_MESSAGE);
+				System.out.println("Please Fill in 'Subject' and 'Title' Fields!");
+				
+			} else {
 				
 				try {
-					statement = con.prepareStatement("select noteSubject, noteTitle, noteEntry from notes where "
-							+ "noteTitle = ?");
-					statement.setString(1, noteTitle);
-					ResultSet rs = statement.executeQuery();
+					connect();
 					
+					statement = con.prepareStatement("select noteSubject, noteTitle, noteEntry from notes where "
+							+ "noteSubject = ? AND noteTitle = ?");
+					statement.setString(1, noteSubject);
+					statement.setString(2, noteTitle);
+					ResultSet rs = statement.executeQuery();
+						
 					if (rs.next() == true) {
-						String noteSubject = rs.getString(1);
+						noteSubject = rs.getString(1);
 						noteTitle = rs.getString(2);
 						String noteEntry = rs.getString(3);
-						
+							
 						JDialog dialog = new JDialog(frame, "Note");
 						dialog.setSize(500, 600);
 						dialog.getContentPane().setBackground(Color.DARK_GRAY);
 						dialog.setVisible(true);
-						
+							
 						JLabel l0 = new JLabel("Subject:          "+ noteSubject);
 						l0.setBounds(150, 70, 200, 100);
 						l0.setForeground(Color.RED);
-						
-						JLabel l1 = new JLabel("Title:          " + noteTitle);
+							
+						JLabel l1 = new JLabel("Title:            " + noteTitle);
 						l1.setBounds(150, 90, 200, 250);
 						l1.setForeground(Color.RED);
-						
-						JLabel l2 = new JLabel("Entry:          " + noteEntry);
-						l2.setBounds(150, 150, 300, 400);
+							
+						JLabel l2 = new JLabel("Entry:            " + noteEntry);
+						l2.setBounds(150, 130, 200, 400);
 						l2.setForeground(Color.RED);
-						
+							
 						dialog.add(l0);
 						dialog.add(l1);
 						dialog.add(l2);
 						dialog.setDefaultCloseOperation(1);
 						
 						con.close();
-						
+							
 					} else {
 						subject.setText("");
 						title.setText("");
 						entry.setText("");
-						
-						JOptionPane.showMessageDialog(null, "Please Enter A Valid Title", "Error",
+							
+						JOptionPane.showMessageDialog(null, "Please Enter A Valid 'Subject' & 'Title'", "Error",
 								JOptionPane.ERROR_MESSAGE);
 					}
-					
+						
 				} catch (SQLException ex) {
 					ex.printStackTrace();
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Failed to View Note",
+							JOptionPane.ERROR_MESSAGE);
 				}
 			}
+		}
 			
-			if(a.getSource() == update) {
-				connect();
-				String noteSubject = subject.getText();
-				String noteTitle = title.getText();
-				String noteEntry = entry.getText();
+		if(a.getSource() == update) {
+			
+			String noteSubject = subject.getText().trim();
+			String noteTitle = title.getText().trim();
+			String noteEntry = entry.getText().trim();
+			
+			if (noteSubject.isBlank() || noteTitle.isBlank() || noteEntry.isBlank()) {
+				JOptionPane.showMessageDialog(null, "Please Fill in All Fields.", "Note rejected", 
+						JOptionPane.ERROR_MESSAGE);
+				System.out.println("Please Fill in All Fields!");
+			} else {
 				
 				try {
+					connect();
+					
 					statement = con.prepareStatement("update notes set noteSubject = ?, noteTitle = ?,"
-							+ " noteEntry = ? where noteTitle = ?");
+							+ " noteEntry = ? where noteSubject = ? AND noteTitle = ?");
 					statement.setString(1, noteSubject);
 					statement.setString(2, noteTitle);
 					statement.setString(3, noteEntry);
-					statement.setString(4, noteTitle);
+					statement.setString(4, noteSubject);
+					statement.setString(5, noteTitle);
 					statement.executeUpdate();
+					
+					printData(noteSubject, noteTitle, noteEntry);
 					
 					JOptionPane.showMessageDialog(null, "Note Has Been Updated!", "Note Updated",
 							JOptionPane.INFORMATION_MESSAGE);
-					
+						
 					subject.setText("");
 					title.setText("");
 					entry.setText("");
-					
+						
 					con.close();
-					
+						
 				} catch (SQLException ex) {
-					ex.printStackTrace();
+						ex.printStackTrace();
+						JOptionPane.showMessageDialog(null, ex.getMessage(), "Note Failed to Update",
+								JOptionPane.ERROR_MESSAGE);
+						
 				}
 			}
+		}
 			
-			if(a.getSource() == delete) {
-				connect();
-				String noteTitle = title.getText();
+		if(a.getSource() == delete) {
+			
+			String noteSubject = subject.getText().trim();
+			String noteTitle = title.getText().trim();
+			
+			if (noteTitle.isBlank() || noteSubject.isBlank()) {
+				JOptionPane.showMessageDialog(null, "Please Fill in the 'Subject' & 'Title' fields.", "Note rejected", 
+						JOptionPane.ERROR_MESSAGE);
+				System.out.println("Please Fill in the 'Subject' & 'Title' Fields!");
+			} else {
 				
 				try {
-					statement = con.prepareStatement("delete from notes where notetitle = ?");
-					statement.setString(1, noteTitle);
-					statement.executeUpdate();
+					connect();
 					
+					statement = con.prepareStatement("delete from notes where noteSubject = ? AND noteTitle = ?");
+					statement.setString(1, noteSubject);
+					statement.setString(2, noteTitle);
+					statement.executeUpdate();
+						
 					JOptionPane.showMessageDialog(null, "Note Has Been Deleted!", "Note Deleted",
 							JOptionPane.INFORMATION_MESSAGE);
-					
+						
 					subject.setText("");
 					title.setText("");
 					entry.setText("");
-					
+						
 					con.close();
-					
+						
 				} catch (SQLException ex) {
 					ex.printStackTrace();
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Note Failed to Delete",
+							JOptionPane.ERROR_MESSAGE);
 				}
 			}
-			
 		}
-		
-		public static void connect() {
-			String URL = "jdbc:sqlite:notes.db";
 			
-			try {
-				con = DriverManager.getConnection(URL);
-				System.out.println("Successfully Connected to Database...");
-			} catch (SQLException e) {
-				System.out.println(e.getMessage());
-			}
-			
-		}
 	}
 	
+		
 }
+	
 
